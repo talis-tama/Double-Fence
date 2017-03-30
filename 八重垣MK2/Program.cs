@@ -11,7 +11,7 @@ namespace 八重垣MK2
 {
     static class Program
     {
-        internal static string time;
+        internal static string filename;
         /// <summary>
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
@@ -20,10 +20,10 @@ namespace 八重垣MK2
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
             DateTime tim = new DateTime();
             tim = DateTime.Now;
-            time = tim.ToLongTimeString();
+            filename = @"C:\Users\" + Environment.UserName + @"\Desktop\output" + tim.ToString("yyyyMMddHHmmss") + ".txt";
+            Application.Run(new Form1());
         }
     }
     public partial class Form1 : Form
@@ -33,6 +33,7 @@ namespace 八重垣MK2
         TextBox textbox1, textbox2;
         Button button1;
         NumericUpDown numericupdown;
+        ToolStripMenuItem combine;
         public Form1()
         {
             Width = 360;
@@ -46,7 +47,7 @@ namespace 八重垣MK2
             menu.SuspendLayout();
             ToolStripMenuItem file = new ToolStripMenuItem();
             ToolStripMenuItem read = new ToolStripMenuItem();
-            ToolStripMenuItem combine = new ToolStripMenuItem();
+            combine = new ToolStripMenuItem();
             file.Text = "ファイル";
             read.Text = "開く";
             combine.Text = "ファイル結合";
@@ -97,6 +98,7 @@ namespace 八重垣MK2
             numericupdown.Maximum = 99;
             numericupdown.Minimum = 1;
             numericupdown.ImeMode = ImeMode.Disable;
+            numericupdown.ValueChanged += new EventHandler(numericupdown_changed);
             Controls.Add(numericupdown);
 
             label1 = new Label();
@@ -109,11 +111,13 @@ namespace 八重垣MK2
             textbox1.Size = new Size(95, 20);
             textbox1.Text = "名前を入力";
             textbox1.Click += new EventHandler(textbox1_click);
+            textbox1.TextChanged += new EventHandler(textbox1_changed);
             Controls.Add(textbox1);
 
             button1 = new Button();
             button1.Location = new Point(15, 210);
             button1.Size = new Size(95, 30);
+            button1.Enabled = false;
             button1.Text = "書き込み";
             button1.Click += new EventHandler(button1_click);
             Controls.Add(button1);
@@ -125,6 +129,8 @@ namespace 八重垣MK2
             button2.Click += new EventHandler(button2_click);
             Controls.Add(button2);
 
+            button2.Enabled = false;//工事中
+
             textbox2 = new TextBox();
             textbox2.Location = new Point(125, 35);
             textbox2.Size = new Size(200, 250);
@@ -133,13 +139,115 @@ namespace 八重垣MK2
             textbox2.ScrollBars = ScrollBars.Vertical;
             Controls.Add(textbox2);
         }
-        void read_click(object sender,EventArgs e) { }
-        void combine_click(object sender,EventArgs e) { }
-        void combobox1_changed(object sender,EventArgs e) { }
-        void combobox2_changed(object sender,EventArgs e) { }
+        void textbox2_refresh()
+        {
+            StreamReader inputrefresh = new StreamReader(Program.filename, Encoding.GetEncoding("shift_jis"));
+            textbox2.Text = inputrefresh.ReadToEnd();
+            inputrefresh.Close();
+        }
+        void classinfo() { label1.Text = combobox1.Text + combobox2.Text + numericupdown.Value + "番"; }
+        void read_click(object sender,EventArgs e)
+        {
+            OpenFileDialog readOFD = new OpenFileDialog();
+            readOFD.FileName = "";
+            readOFD.InitialDirectory = @"C:\Users\" + Environment.UserName + @"\Desktop\";
+            readOFD.Filter = "テキストファイル(*.txt)|*.txt";
+            readOFD.Title = "開く";
+            readOFD.RestoreDirectory = true;
+            readOFD.CheckFileExists = true;
+            if (readOFD.ShowDialog() == DialogResult.OK)
+            {
+                Program.filename = readOFD.FileName;
+                textbox2_refresh();
+                combine.Enabled = true;
+            }
+        }
+        void combine_click(object sender,EventArgs e)
+        {
+            OpenFileDialog combineOFD = new OpenFileDialog();
+            combineOFD.FileName = "";
+            combineOFD.InitialDirectory = @"C:\Users\" + Environment.UserName + @"\Desktop\";
+            combineOFD.Filter = "テキストファイル(*.txt)|*.txt";
+            combineOFD.Title = "開く";
+            combineOFD.RestoreDirectory = true;
+            combineOFD.CheckFileExists = true;
+            if (combineOFD.ShowDialog() == DialogResult.OK)
+            {
+                StreamWriter outputcombine = new StreamWriter(Program.filename, true, Encoding.GetEncoding("shift_jis"));
+                StreamReader inputcombine = new StreamReader(combineOFD.FileName, Encoding.GetEncoding("shift_jis"));
+                while (inputcombine.Peek() > -1) { outputcombine.Write(inputcombine.ReadLine() + Environment.NewLine); }
+                outputcombine.Close();
+                inputcombine.Close();
+                textbox2_refresh();
+                MessageBox.Show("完了しました", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        void combobox1_changed(object sender, EventArgs e)
+        {
+            combobox2.Enabled = true;
+            combobox2.Items.Clear();
+            if (combobox1.SelectedIndex >= 0 && combobox1.SelectedIndex <= 2)
+            {
+                combobox2.Items.Add("1組");
+                combobox2.Items.Add("2組");
+                combobox2.Items.Add("3組");
+            }
+            else
+            {
+                combobox2.Items.Add("A組");
+                combobox2.Items.Add("B組");
+                combobox2.Items.Add("C組");
+                combobox2.Items.Add("D組");
+                combobox2.Items.Add("E組");
+                combobox2.Items.Add("F組");
+                combobox2.Items.Add("G組");
+                combobox2.Items.Add("H組");
+            }
+            combobox2.SelectedIndex = 0;
+            classinfo();
+        }
+        void combobox2_changed(object sender,EventArgs e) { classinfo(); }
         void numericupdown_keypress(object sender,KeyPressEventArgs e) { if ((e.KeyChar < '0' || '9' < e.KeyChar) && e.KeyChar != '\b') { e.Handled = true; } }
+        void numericupdown_changed(object sender,EventArgs e) { classinfo(); }
         void textbox1_click(object sender,EventArgs e) { textbox1.Text = ""; }
-        void button1_click(object sender,EventArgs e) { }
-        void button2_click(object sender,EventArgs e) { }
+        void textbox1_changed(object sender,EventArgs e)
+        {
+            if (textbox1.Text.Length == 0) { button1.Enabled = false; }
+            else { button1.Enabled = true; }
+        }
+        void button1_click(object sender,EventArgs e)
+        {
+            int dat, grade, clas;
+            grade = combobox1.SelectedIndex + 1;
+            grade = grade * 1000;
+            clas = combobox2.SelectedIndex + 1;
+            clas = clas * 100;
+            dat = 990000 + grade + clas + int.Parse(numericupdown.Value.ToString());
+            StreamWriter outputmain = new StreamWriter(Program.filename, true, Encoding.GetEncoding("shift_jis"));
+            outputmain.Write(dat.ToString() + textbox1.Text + Environment.NewLine);
+            outputmain.Close();
+            textbox2_refresh();
+        }
+        void button2_click(object sender,EventArgs e)
+        {
+            OpenFileDialog excel = new OpenFileDialog();
+            excel.FileName = "";
+            excel.InitialDirectory = @"C:\Users\" + Environment.UserName + @"\Desktop\";
+            excel.Filter = "Excelシート(*.xlsx)|*.xlsx";
+            excel.Title = "対象Excelファイル選択";
+            excel.RestoreDirectory = true;
+            excel.CheckFileExists = true;
+            if (excel.ShowDialog() == DialogResult.OK)
+            {
+                form2.filename = excel.FileName;
+                form2 f2 = new form2();
+                f2.ShowDialog();
+            }
+        }
+    }
+    public partial class form2 : Form
+    {
+        public static string filename;
+        public form2() { }
     }
 }

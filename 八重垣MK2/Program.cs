@@ -33,7 +33,7 @@ namespace 八重垣MK2
         TextBox textbox1, textbox2;
         Button button1, button2;
         NumericUpDown numericupdown;
-        ToolStripMenuItem combine;
+        ToolStripMenuItem read, combine;
         public Form1()
         {
             Width = 360;
@@ -46,7 +46,7 @@ namespace 八重垣MK2
             SuspendLayout();
             menu.SuspendLayout();
             ToolStripMenuItem file = new ToolStripMenuItem();
-            ToolStripMenuItem read = new ToolStripMenuItem();
+            read = new ToolStripMenuItem();
             combine = new ToolStripMenuItem();
             file.Text = "ファイル";
             read.Text = "開く";
@@ -160,6 +160,7 @@ namespace 八重垣MK2
                 textbox2_refresh();
                 combine.Enabled = true;
                 button2.Enabled = true;
+                read.Enabled = false;
             }
         }
         void combine_click(object sender,EventArgs e)
@@ -230,6 +231,8 @@ namespace 八重垣MK2
             button2.Enabled = true;
             textbox1.Text = "";
             numericupdown.Value = numericupdown.Value + 1;
+            read.Enabled = false;
+            combine.Enabled = true;
         }
         void button2_click(object sender,EventArgs e)
         {
@@ -255,7 +258,7 @@ namespace 八重垣MK2
         Button button3;
         public form2()
         {
-            Width = 200;
+            Width = 195;
             Height = 240;
             Text = "必要事項入力";
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -321,8 +324,51 @@ namespace 八重垣MK2
             int vertical = int.Parse(numericupdown4.Value.ToString());
             using(var book=new XLWorkbook(filename, XLEventTracking.Disabled))
             {
+                StreamReader infile = new StreamReader(Program.filename, Encoding.GetEncoding("shift_jis"));
                 var readsheet = book.Worksheet(sheet);
                 int count = 0;
+                string[] indat = null;
+                for(int a = 1; a <= horizontal; a++)
+                {
+                    for(int b = 1; b <= vertical; b++)
+                    {
+                        Array.Resize(ref indat, count + 1);
+                        var cell = readsheet.Cell(b, a);
+                        indat[count] = cell.GetString();
+                        count++;
+                    }
+                }
+                string buff;
+                int buffint, datint;
+                string name;
+                while (infile.Peek() > -1)
+                {
+                    buff = infile.ReadLine();
+                    name = buff;
+                    buff = buff.Remove(6);
+                    name = name.Remove(0, 6);
+                    buffint = int.Parse(buff);
+                    for(int counta=0; counta < count; counta++)
+                    {
+                        if (indat[counta].IndexOf("99") >= 0)
+                        {
+                            datint = int.Parse(indat[counta]);
+                            if (buffint == datint) { indat[counta] = name; }
+                        }
+                    }
+                }
+                int countb = 0;
+                for(int c = 1; c <= horizontal; c++)
+                {
+                    for(int d = 1; d <= vertical; d++)
+                    {
+                        var cell1 = readsheet.Cell(d, c);
+                        cell1.Value = indat[countb];
+                        countb++;
+                    }
+                }
+                book.SaveAs(@"C:\Users\" + Environment.UserName + @"\Desktop\output.xlsx");
+                MessageBox.Show("完了しました", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
     }

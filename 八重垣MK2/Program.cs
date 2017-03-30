@@ -31,7 +31,7 @@ namespace 八重垣MK2
         ComboBox combobox1, combobox2;
         Label label1;
         TextBox textbox1, textbox2;
-        Button button1;
+        Button button1, button2;
         NumericUpDown numericupdown;
         ToolStripMenuItem combine;
         public Form1()
@@ -122,14 +122,13 @@ namespace 八重垣MK2
             button1.Click += new EventHandler(button1_click);
             Controls.Add(button1);
 
-            Button button2 = new Button();
+            button2 = new Button();
             button2.Location = new Point(15, 255);
             button2.Size = new Size(95, 30);
             button2.Text = "Excelシート適用";
             button2.Click += new EventHandler(button2_click);
+            button2.Enabled = false;
             Controls.Add(button2);
-
-            button2.Enabled = false;//工事中
 
             textbox2 = new TextBox();
             textbox2.Location = new Point(125, 35);
@@ -160,6 +159,7 @@ namespace 八重垣MK2
                 Program.filename = readOFD.FileName;
                 textbox2_refresh();
                 combine.Enabled = true;
+                button2.Enabled = true;
             }
         }
         void combine_click(object sender,EventArgs e)
@@ -227,6 +227,9 @@ namespace 八重垣MK2
             outputmain.Write(dat.ToString() + textbox1.Text + Environment.NewLine);
             outputmain.Close();
             textbox2_refresh();
+            button2.Enabled = true;
+            textbox1.Text = "";
+            numericupdown.Value = numericupdown.Value + 1;
         }
         void button2_click(object sender,EventArgs e)
         {
@@ -248,6 +251,79 @@ namespace 八重垣MK2
     public partial class form2 : Form
     {
         public static string filename;
-        public form2() { }
+        NumericUpDown numericupdown2, numericupdown3, numericupdown4;
+        Button button3;
+        public form2()
+        {
+            Width = 200;
+            Height = 240;
+            Text = "必要事項入力";
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+
+            Label label1 = new Label();
+            label1.Location = new Point(15, 15);
+            label1.Size = new Size(150, 15);
+            label1.Text = "操作するエクセルシートの番号";
+            Controls.Add(label1);
+
+            numericupdown2 = new NumericUpDown();
+            numericupdown2.Location = new Point(15, 35);
+            numericupdown2.Size = new Size(60, 20);
+            numericupdown2.Minimum = 1;
+            numericupdown2.Maximum = 999;
+            numericupdown2.ImeMode = ImeMode.Disable;
+            numericupdown2.KeyPress += new KeyPressEventHandler(numericupdownkeypressevent);
+            Controls.Add(numericupdown2);
+
+            Label label2 = new Label();
+            label2.Location = new Point(15, 60);
+            label2.Size = new Size(150, 15);
+            label2.Text = "計測する横のセルの数";
+            Controls.Add(label2);
+
+            numericupdown3 = new NumericUpDown();
+            numericupdown3.Location = new Point(15, 80);
+            numericupdown3.Size = new Size(60, 20);
+            numericupdown3.Minimum = 1;
+            numericupdown3.Maximum = 999;
+            numericupdown3.ImeMode = ImeMode.Disable;
+            numericupdown3.KeyPress += new KeyPressEventHandler(numericupdownkeypressevent);
+            Controls.Add(numericupdown3);
+
+            Label label3 = new Label();
+            label3.Location = new Point(15, 105);
+            label3.Size = new Size(150, 15);
+            label3.Text = "計測する縦のセルの数";
+            Controls.Add(label3);
+
+            numericupdown4 = new NumericUpDown();
+            numericupdown4.Location = new Point(15, 125);
+            numericupdown4.Size = new Size(60, 20);
+            numericupdown4.Minimum = 1;
+            numericupdown4.Maximum = 999;
+            numericupdown4.ImeMode = ImeMode.Disable;
+            numericupdown4.KeyPress += new KeyPressEventHandler(numericupdownkeypressevent);
+            Controls.Add(numericupdown4);
+
+            button3 = new Button();
+            button3.Location = new Point(15, 150);
+            button3.Size = new Size(150, 40);
+            button3.Text = "開始";
+            button3.Click += new EventHandler(button3_click);
+            Controls.Add(button3);
+        }
+        void numericupdownkeypressevent(object sender,KeyPressEventArgs e) { if ((e.KeyChar < '0' || '9' < e.KeyChar) && e.KeyChar != '\b') { e.Handled = true; } }
+        void button3_click(object sender,EventArgs e)
+        {
+            int sheet = int.Parse(numericupdown2.Value.ToString());
+            int horizontal = int.Parse(numericupdown3.Value.ToString());
+            int vertical = int.Parse(numericupdown4.Value.ToString());
+            using(var book=new XLWorkbook(filename, XLEventTracking.Disabled))
+            {
+                var readsheet = book.Worksheet(sheet);
+                int count = 0;
+            }
+        }
     }
 }

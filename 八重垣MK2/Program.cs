@@ -367,7 +367,7 @@ namespace 八重垣MK2
                         countb++;
                     }
                 }
-                book.SaveAs(@"C:\Users\" + Environment.UserName + @"\Desktop\output.xlsx");
+                book.SaveAs(filename);
                 MessageBox.Show("完了しました", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
